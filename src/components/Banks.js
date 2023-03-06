@@ -4,7 +4,7 @@ import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { Button, Form } from "semantic-ui-react";
-import { Header, Icon, Image, Segment, Divider, Table,Breadcrumb } from "semantic-ui-react";
+import { Header, Icon, Image, Segment, Divider, Table, Breadcrumb } from "semantic-ui-react";
 import { contractAddressFed, ABIFed } from "../constants";
 import { contractAddressEcb, ABIEcb } from "../constants";
 import { contractAddressbnksys, ABIbnksys } from "../constants";
@@ -86,10 +86,10 @@ function Banks() {
             .branches(0, branchCount1 - 1)
             .call();
 
-            console.log("Response from addbank:", branchCount1)
-            console.log("call bank:", branchdetails1)
+          console.log("Response from addbank:", branchCount1)
+          console.log("call bank:", branchdetails1)
 
-            
+
           let tmp_data = arrayData;
           tmp_data.push(branchdetails1)
           console.log(tmp_data)
@@ -112,15 +112,15 @@ function Banks() {
           console.log(response)
 
           let branchCount2 = await callContract.methods
-            .branchcount(1)
+            .branchCount(1)
             .call();
 
           let branchdetails2 = await callContract.methods
             .branches(1, branchCount2 - 1)
             .call();
 
-            
-            console.log("Response from addbank:", branchCount2)
+
+          console.log("Response from addbank:", branchCount2)
           console.log("call bank:", branchdetails2)
 
 
@@ -153,7 +153,7 @@ function Banks() {
           size="large"
           src="https://react.semantic-ui.com/images/wireframe/centered-paragraph.png"
         />
-   
+
       </div>
 
       <Form unstackable>
@@ -191,7 +191,7 @@ function Banks() {
                 return (
                   <Table.Row key={index}>
                     <Table.Cell>{data.branch}</Table.Cell>
-                    <Table.Cell>{data.amount / 10e8} {data.tokenSymbol}</Table.Cell>
+                    <Table.Cell>{data.amount / 10e7} {data.tokenSymbol}</Table.Cell>
                     <Table.Cell>{data.status ? 'True' : 'True'}</Table.Cell>
                   </Table.Row>
                 )

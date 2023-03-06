@@ -23,14 +23,13 @@ function BankReserve() {
   const [temp, setTemp] = useState("")
 
   useEffect(() => {
-    if (bankAdded) { setBankAdded(true) }
-    else { setBankAdded(false) }
 
     let temp_data = window.localStorage.getItem("Data")
     if (temp_data) {
       temp_data = JSON.parse(temp_data)
       setArrayData(temp_data)
     }
+    // window.localStorage.clear();
 
   }, [arrayData]
   );

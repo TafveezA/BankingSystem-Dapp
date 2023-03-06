@@ -1,6 +1,6 @@
 export const contractAddressbnksys =
-  "0x30c24D5409fD5ebe10188f3DC2e41CF48ce9195C";
-export const ABIbnksys = [
+  "0xc213DC096514C6bc0E3C582138760c27eE62486a";
+export const ABIbnksys =[
 	{
 		"inputs": [
 			{
@@ -313,6 +313,11 @@ export const ABIbnksys = [
 			},
 			{
 				"internalType": "uint256",
+				"name": "_clientId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
 				"name": "_toBankId",
 				"type": "uint256"
 			},
@@ -435,6 +440,11 @@ export const ABIbnksys = [
 			},
 			{
 				"internalType": "uint256",
+				"name": "_clientId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
 				"name": "_reqId",
 				"type": "uint256"
 			}
@@ -522,6 +532,45 @@ export const ABIbnksys = [
 			{
 				"internalType": "bool",
 				"name": "status",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "borrowDetails",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "positionId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "clientId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "byClient",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "toBranch",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isApproved",
 				"type": "bool"
 			}
 		],
@@ -730,6 +779,45 @@ export const ABIbnksys = [
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "forexDetails",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "reqId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "clientId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "byClient",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "toClient",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isApproved",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "uint256",
 				"name": "_amounInUSD",
 				"type": "uint256"
@@ -772,6 +860,35 @@ export const ABIbnksys = [
 			{
 				"internalType": "uint256",
 				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "idOfAddress",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "bankId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "branchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "clientId",
 				"type": "uint256"
 			}
 		],
@@ -1053,7 +1170,7 @@ export const ABIbnksys = [
 	}
 ]
 
-export const contractAddressEcb = "0x447f47b3589039c1a5B124Ea76B76eb9c4620C85";
+export const contractAddressEcb = "0x8D6054cBa3A6755F249C22E3b8C24Dac46120f94";
 
 export const ABIEcb = [
 	{
@@ -1337,7 +1454,7 @@ export const ABIEcb = [
 	}
 ]
 
-export const contractAddressFed = "0xbdAaD2e9b6053D9f704da644fd562F29FB3dC0cc";
+export const contractAddressFed = "0x927CF664116B316bE64249B3cA0f5ef4A06Feebd";
 
 export const ABIFed = [
 	{
