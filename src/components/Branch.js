@@ -30,14 +30,18 @@ function Branch() {
   const [centralbankid, setCentralBankID] = useState("");
   const [arrayData, setArrayData] = useState([]);
   const [arrayDataForexDet, setArrayDataForexDet] = useState([]);
-  const [arrayDataBorrowDet, setArrayBorrowForexDet] = useState([]);
+  const [arrayDataBorrowDet, setArrayBorrowDet] = useState([]);
+  const [arrayDataBorrowDispDet, setArrayBorrowDispDet] = useState([]);
   const [newarrayData, setNewArrayData] = useState([]);
   const [balancebranch, setBalanceBranch] = useState("");
   const [symbolbranch, setSymbolBranch] = useState("");
   const [detailsbranchid, setDetailsBranchID] = useState("");
   const [isconnectbuttonclicked, setIsConnectButtonClicked] = useState(false);
+  const [isApprovedButton, setIsApprovedButton] = useState(false);
 
   useEffect(() => {
+
+
     let temp_data = window.localStorage.getItem("DataC");
     if (temp_data) {
       temp_data = JSON.parse(temp_data);
@@ -53,11 +57,20 @@ function Branch() {
     let temp_data_brr_det = window.localStorage.getItem("DataBrrDet");
     if (temp_data_brr_det) {
       temp_data_brr_det = JSON.parse(temp_data_brr_det);
-      setArrayBorrowForexDet(temp_data_brr_det);
+      setArrayBorrowDet(temp_data_brr_det);
     }
 
-    // window.localStorage.clear();
-  }, [arrayData, arrayDataForexDet]);
+    let temp_data_disp_brr_det = window.localStorage.getItem("DataBrrDispDet");
+    if (temp_data_disp_brr_det) {
+      temp_data_disp_brr_det = JSON.parse(temp_data_disp_brr_det);
+      setArrayBorrowDispDet(temp_data_disp_brr_det);
+    }
+
+    if (temp_data && temp_data_frx_det && temp_data_brr_det)
+      return;
+
+
+  }, [arrayData, arrayDataForexDet, setArrayBorrowDet]);
 
   async function addClient() {
     try {
@@ -230,28 +243,19 @@ function Branch() {
             .call();
           setBalanceBranch(balanceOf);
 
-          let forexDetials = await callContract.methods
+          let forexDetails = await callContract.methods
             .forexDetails(address)
             .call();
-          console.log("forexDetials", forexDetials);
+          console.log("forexDetails", forexDetails);
 
           let ReqDetailsClient1 = await callContract.methods
-            .requestDetails(forexDetials.byClient, forexDetials.reqId)
+            .requestDetails(forexDetails.byClient, forexDetails.reqId)
             .call();
 
-          console.log(
-            "IDByAddress.bankId, IDByAddress.branchId, forexDetials.clientId, forexDetials.reqId",
-            IDByAddress.bankId,
-            IDByAddress.branchId,
-            forexDetials.clientId,
-            forexDetials.reqId
-          );
           let response = await callContract.methods
-            .sendForexRequestToBank(0, 0, 0, 0)
+            .sendForexRequestToBank(ReqDetailsClient1.fromBankId, ReqDetailsClient1.fromBranchId, forexDetails.clientId, ReqDetailsClient1.reqId) //Needs Debuging
             .send({ from: address, gas: 1000000 });
 
-          console.log("ReqDetailsAddress :", forexDetials);
-          console.log("ReqDetailsClient1 :", ReqDetailsClient1);
 
           let tmp_data = arrayDataForexDet;
           tmp_data.push(ReqDetailsClient1);
@@ -273,25 +277,22 @@ function Branch() {
             .idOfAddress(address)
             .call();
 
-          let forexDetials = await callContract.methods
+          let forexDetails = await callContract.methods
             .forexDetails(address)
             .call();
-          console.log("forexDetials", forexDetials);
+          console.log("forexDetails", forexDetails);
 
           let ReqDetailsClient1 = await callContract.methods
-            .requestDetails(forexDetials.byClient, forexDetials.reqId)
+            .requestDetails(forexDetails.byClient, forexDetails.reqId)
             .call();
 
           let response = await callContract.methods
             .sendForexRequestToBank(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
-              forexDetials.clientId,
-              forexDetials.reqId
+              ReqDetailsClient1.fromBankId, ReqDetailsClient1.fromBranchId, forexDetails.clientId, ReqDetailsClient1.reqId
             )
             .send({ from: address, gas: 1000000 });
 
-          console.log("ReqDetailsAddress :", forexDetials);
+          console.log("ReqDetailsAddress :", forexDetails);
           console.log("ReqDetailsClient1 :", ReqDetailsClient1);
 
           // response = {addres: hhkujiiio, status: true, id:555, amount:8885454}
@@ -424,16 +425,16 @@ function Branch() {
         if (IDByAddress.bankId == 0) {
           setTokenSymbol("EUR");
 
-          let forexDetials = await callContract.methods
-            .forexDetials(address)
+          let forexDetails = await callContract.methods
+            .forexDetails(address)
             .call();
 
           let response = await callContract.methods
             .sendForexRequestToBank(
               IDByAddress.bankId,
               IDByAddress.branchId,
-              forexDetials.clientId,
-              forexDetials.reqId
+              forexDetails.clientId,
+              forexDetails.reqId
             )
             .send({ from: address, gas: 1000000 });
         } else {
@@ -443,16 +444,16 @@ function Branch() {
             .idOfAddress(address)
             .call();
 
-          let forexDetials = await callContract.methods
-            .forexDetials(address)
+          let forexDetails = await callContract.methods
+            .forexDetails(address)
             .call();
 
           let response = await callContract.methods
             .sendForexRequestToBank(
               IDByAddress.bankId,
               IDByAddress.branchId,
-              forexDetials.clientId,
-              forexDetials.reqId
+              forexDetails.clientId,
+              forexDetails.reqId
             )
             .send({ from: address, gas: 1000000 });
         }
@@ -502,12 +503,12 @@ function Branch() {
           .idOfAddress(address)
           .call();
 
-        let forexDetials = await callContract.methods
-          .forexDetials(address)
+        let forexDetails = await callContract.methods
+          .forexDetails(address)
           .call();
 
         let IDByAddress2 = await callContract.methods
-          .idOfAddress(forexDetials.toClient)
+          .idOfAddress(forexDetails.toClient)
           .call();
 
         let branchDetails = await callContract.methods
@@ -515,11 +516,31 @@ function Branch() {
           .call();
 
         let requestDetails = await callContract.methods
-          .requestDetails(forexDetials.byClient, forexDetials.reqId)
+          .requestDetails(forexDetails.byClient, forexDetails.reqId)
           .call();
 
-        if (IDByAddress.bankId == 0 && forexDetials.isApproved) {
+        if (IDByAddress.bankId == 0) {
           setTokenSymbol("EUR");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let forexDetails = await callContract.methods
+            .forexDetails(address)
+            .call();
+
+          let IDByAddress2 = await callContract.methods
+            .idOfAddress(forexDetails.toClient)
+            .call();
+
+          let branchDetails = await callContract.methods
+            .branches(IDByAddress2.bankId, IDByAddress2.branchId)
+            .call();
+
+          let requestDetails = await callContract.methods
+            .requestDetails(forexDetails.byClient, forexDetails.reqId)
+            .call();
 
           let responseEcb = await callContractECB.methods
             .approve(contractAddressbnksys, requestDetails.amountInEur)
@@ -527,30 +548,67 @@ function Branch() {
 
           let response = await callContract.methods
             .processForexRequestByBranch(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
-              IDByAddress2.bankId,
-              IDByAddress2.branchId,
-              forexDetials.reqId
+              requestDetails.toBankId,
+              requestDetails.toBranchId,
+              requestDetails.fromBankId,
+              requestDetails.fromBranchId,
+              requestDetails.reqId
             )
             .send({ from: address, gas: 1000000 });
-        } else if (IDByAddress.bankId == 1 && forexDetials.isApproved) {
+
+          let tmp_data = arrayDataForexDet;
+          tmp_data.push(requestDetails);
+          console.log(tmp_data);
+          setArrayDataForexDet(tmp_data);
+          window.localStorage.setItem("DataFrxDet", JSON.stringify(tmp_data));
+          console.log("rrayDataForexDet:", arrayDataForexDet);
+          console.log("rrayDataForexDet:", arrayDataForexDet[0].amount);
+          console.log("rrayDataForexDet:", arrayDataForexDet[0].bank);
+
+        } else {
           setTokenSymbol("USD");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let forexDetails = await callContract.methods
+            .forexDetails(address)
+            .call();
+
+          let IDByAddress2 = await callContract.methods
+            .idOfAddress(forexDetails.toClient)
+            .call();
+
+          let branchDetails = await callContract.methods
+            .branches(IDByAddress2.bankId, IDByAddress2.branchId)
+            .call();
+
+          let requestDetails = await callContract.methods
+            .requestDetails(forexDetails.byClient, forexDetails.reqId)
+            .call();
+
           let responseFed = await callContractFED.methods
             .approve(contractAddressbnksys, requestDetails.amountInUsd)
             .send({ from: address, gas: 1000000 });
 
           let response = await callContract.methods
             .processForexRequestByBranch(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
-              IDByAddress2.bankId,
-              IDByAddress2.branchId,
-              forexDetials.reqId
+              requestDetails.toBankId,
+              requestDetails.toBranchId,
+              requestDetails.fromBankId,
+              requestDetails.fromBranchId,
+              requestDetails.reqId
             )
             .send({ from: address, gas: 1000000 });
-        } else {
-          console.log("No Approved From the Branch");
+
+          let tmp_data = arrayDataForexDet;
+          tmp_data.push(requestDetails);
+          console.log("tmp_data", tmp_data);
+          setArrayDataForexDet(tmp_data);
+          window.localStorage.setItem("DataFrxDet", JSON.stringify(tmp_data));
+          console.log("arrayDataForexDet:", arrayDataForexDet[0].amount);
+          console.log("arrayDataForexDet:", arrayDataForexDet[0].bank);
         }
       }
     } catch (error) {
@@ -602,73 +660,52 @@ function Branch() {
         if (IDByAddress.bankId == 0) {
           setTokenSymbol("EUR");
 
-          let responseEcb = await callContractECB.methods
-          .approve(contractAddressbnksys, positionDetails.amountBorrowed)
-          .send({ from: address, gas: 1000000 });
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
 
           let borrowDetails = await callContract.methods
             .borrowDetails(address)
             .call();
           console.log("borrowDetails", borrowDetails);
 
-          let positionDetails = await callContract.methods
-            .positionDetails(borrowDetails.byClient, positionDetails.positionId)
+          let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
             .call();
 
-          console.log("borrowDetails :", borrowDetails);
-          console.log("positionDetails :", positionDetails);
+          console.log("positionDetails1", positionDetails1);
 
-          let response = await callContract.methods
-          .processLoan(
-            positionDetails.bankId,
-            positionDetails.branchId,
-            positionDetails.clientId,
-            positionDetails.positionId
-          )
-          .send({ from: address, gas: 1000000 });
-
-          let tmp_data = arrayDataBorrowDet;
-          tmp_data.push(positionDetails);
+          let tmp_data = arrayDataBorrowDispDet;
+          tmp_data.push(positionDetails1);
           console.log(tmp_data);
-          setArrayBorrowForexDet(tmp_data);
-          window.localStorage.setItem("DataBrrDet", JSON.stringify(tmp_data));
+          setArrayBorrowDispDet(tmp_data);
+          window.localStorage.setItem("DataBrrDispDet", JSON.stringify(tmp_data));
           console.log("arrayData:", arrayData);
           console.log("arrayData:", arrayData[0].isBorrowed);
           console.log("arrayData:", arrayData[0].isDone);
         } else {
           setTokenSymbol("USD");
 
-          let responseFed = await callContractFED.methods
-          .approve(contractAddressbnksys, positionDetails.amountBorrowed)
-          .send({ from: address, gas: 1000000 });
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
 
           let borrowDetails = await callContract.methods
             .borrowDetails(address)
             .call();
           console.log("borrowDetails", borrowDetails);
 
-          let positionDetails = await callContract.methods
-            .positionDetails(borrowDetails.byClient, positionDetails.positionId)
+          let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
             .call();
 
-          console.log("borrowDetails :", borrowDetails);
-          console.log("positionDetails :", positionDetails);
+          console.log("positionDetails1", positionDetails1);
 
-          
-          let response = await callContract.methods
-          .processLoan(
-            positionDetails.bankId,
-            positionDetails.branchId,
-            positionDetails.clientId,
-            positionDetails.positionId
-          )
-          .send({ from: address, gas: 1000000 });
-
-          let tmp_data = arrayDataBorrowDet;
-          tmp_data.push(positionDetails);
+          let tmp_data = arrayDataBorrowDispDet;
+          tmp_data.push(positionDetails1);
           console.log(tmp_data);
-          setArrayBorrowForexDet(tmp_data);
-          window.localStorage.setItem("DataBrrDet", JSON.stringify(tmp_data));
+          setArrayBorrowDispDet(tmp_data);
+          window.localStorage.setItem("DataBrrDispDet", JSON.stringify(tmp_data));
           console.log("arrayData:", arrayData);
           console.log("arrayData:", arrayData[0].isBorrowed);
           console.log("arrayData:", arrayData[0].isDone);
@@ -677,6 +714,151 @@ function Branch() {
     } catch (error) {
       console.log(Error);
     }
+  }
+
+  async function processLoan() {
+    try {
+      if (
+        typeof window !== "undefined" &&
+        typeof window.ethereum !== "undefined"
+      ) {
+        const accounts = await window.ethereum.enable();
+        console.log("accounts", accounts);
+        const provider = await new ethers.providers.Web3Provider(
+          window.ethereum
+        );
+        const signer = await provider.getSigner();
+        console.log("Signer", signer);
+        const address = await signer.getAddress();
+        console.log(address);
+      } else {
+        console.log("MemtaMask Not Installed Maen");
+      }
+      const web3eth = new Web3(Web3.givenProvider);
+
+      const callContract = new web3eth.eth.Contract(
+        ABIbnksys,
+        contractAddressbnksys
+      );
+      const callContractECB = new web3eth.eth.Contract(
+        ABIEcb,
+        contractAddressEcb
+      );
+      const callContractFED = new web3eth.eth.Contract(
+        ABIFed,
+        contractAddressFed
+      );
+      if (web3eth.givenProvider) {
+        console.log("Hello Provider Here", web3eth.givenProvider);
+        let address = web3eth.givenProvider.selectedAddress;
+        console.log("address", address);
+
+        let IDByAddress = await callContract.methods
+          .idOfAddress(address)
+          .call();
+
+        if (IDByAddress.bankId == 0) {
+          setTokenSymbol("EUR");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let borrowDetails = await callContract.methods
+            .borrowDetails(address)
+            .call();
+          console.log("borrowDetails", borrowDetails);
+
+
+
+          let positionDetails = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+          console.log("borrowDetails :", borrowDetails);
+          console.log("positionDetails :", positionDetails);
+
+          let responseEcb = await callContractECB.methods
+            .approve(contractAddressbnksys, positionDetails.amountBorrowed)
+            .send({ from: address, gas: 1000000 });
+
+          let response = await callContract.methods
+            .processLoan(
+              positionDetails.bankId,
+              positionDetails.branchId,
+              positionDetails.clientId,
+              positionDetails.positionId
+            )
+            .send({ from: address, gas: 1000000 });
+
+          let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+          console.log("positionDetails1", positionDetails1);
+
+          let tmp_data = arrayDataBorrowDispDet;
+          tmp_data.push(positionDetails1);
+          console.log(tmp_data);
+          setArrayBorrowDispDet(tmp_data);
+          window.localStorage.setItem("DataBrrDispDet", JSON.stringify(tmp_data));
+          console.log("arrayData:", arrayData);
+          console.log("arrayData:", arrayData[0].isBorrowed);
+          console.log("arrayData:", arrayData[0].isDone);
+        } else {
+          setTokenSymbol("USD");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let borrowDetails = await callContract.methods
+            .borrowDetails(address)
+            .call();
+          console.log("borrowDetails", borrowDetails);
+
+          let positionDetails = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+          console.log("borrowDetails :", borrowDetails);
+          console.log("positionDetails :", positionDetails);
+
+          let responseFed = await callContractFED.methods
+            .approve(contractAddressbnksys, positionDetails.amountBorrowed)
+            .send({ from: address, gas: 1000000 });
+
+
+
+          let response = await callContract.methods
+            .processLoan(
+              positionDetails.bankId,
+              positionDetails.branchId,
+              positionDetails.clientId,
+              positionDetails.positionId
+            )
+            .send({ from: address, gas: 1000000 });
+
+          let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+          console.log("positionDetails1", positionDetails1);
+
+          let tmp_data = arrayDataBorrowDispDet;
+          tmp_data.push(positionDetails1);
+          console.log(tmp_data);
+          setArrayBorrowDispDet(tmp_data);
+          window.localStorage.setItem("DataBrrDispDet", JSON.stringify(tmp_data));
+          console.log("arrayData:", arrayData);
+          console.log("arrayData:", arrayData[0].isBorrowed);
+          console.log("arrayData:", arrayData[0].isDone);
+        }
+      }
+    } catch (error) {
+      console.log(Error);
+    }
+    setIsApprovedButton(true)
   }
 
   async function approveBorrowRequest() {
@@ -868,7 +1050,7 @@ function Branch() {
           <Table.Body>
             {arrayData.length > 0 &&
               arrayData.map((data, index) => {
-                console.log(data[index]);
+
                 return (
                   <Table.Row key={index}>
                     <Table.Cell>{data.client}</Table.Cell>
@@ -903,32 +1085,25 @@ function Branch() {
         <Icon name="wait" circular />
         <Header.Content>Pending Forex Requests</Header.Content>
       </Header>
+      <Button secondary onClick={checkForexRequest}>View Requests</Button>
+      <Divider />
       <div>
         <Card.Group centered>
-          <Button basic color="green" onClick={checkForexRequest}>
-            Approve
-          </Button>
-          {arrayData.length > 0 &&
-            arrayData.map((data, index) => {
+          {arrayDataForexDet.length > 0 &&
+            arrayDataForexDet.map((data, index) => {
               return (
                 <Card>
                   <Card.Content>
                     <Icon name="money bill alternate outline" circular />
                     <Card.Header>Forex Request: {data.reqId} </Card.Header>
-                    <Card.Meta>Amount {data.amountInUsd} USD</Card.Meta>
-                    <Card.Meta>Amount {data.amountInEur} EUR</Card.Meta>
-                    <Card.Description>USD to EUR Rate {1.09}</Card.Description>
+                    <Card.Meta>Amount {data.amountInUsd / 10e7} USD</Card.Meta>
+                    <Card.Meta>Amount {data.amountInEur / 10e7} EUR</Card.Meta>
+                    <Card.Meta>To Bank {data.toBankId}</Card.Meta>
+                    <Card.Meta>To Branch {data.toBranchId}</Card.Meta>
+                    <Card.Description>EUR/USD={data.amountInUsd/data.amountInEur}</Card.Description>
                   </Card.Content>
-                  <Card.Content extra>
-                    <div className="ui two buttons">
-                      <Button basic color="green" onClick={checkForexRequest}>
-                        Approve
-                      </Button>
-                      <Button basic color="red">
-                        Decline
-                      </Button>
-                    </div>
-                  </Card.Content>
+
+
                 </Card>
               );
             })}
@@ -937,7 +1112,7 @@ function Branch() {
         <Divider />
         <div>
           <Header as="h2" icon textAlign="center">
-            <Header.Content>Forex Details </Header.Content>
+            <Header.Content>Forex Details</Header.Content>
           </Header>
           <Table color="black" key={colors} inverted>
             <Table.Header>
@@ -945,51 +1120,39 @@ function Branch() {
                 <Table.HeaderCell>To Client Address</Table.HeaderCell>
                 <Table.HeaderCell>Amount USD</Table.HeaderCell>
                 <Table.HeaderCell>Amount EUR</Table.HeaderCell>
+                <Table.HeaderCell>From Bank</Table.HeaderCell>
                 <Table.HeaderCell>From Branch</Table.HeaderCell>
+                <Table.HeaderCell>To Bank</Table.HeaderCell>
                 <Table.HeaderCell>To Branch</Table.HeaderCell>
                 <Table.HeaderCell>Status</Table.HeaderCell>
-                <Table.HeaderCell>
-                  <Button
-                    basic
-                    color="green"
-                    onClick={processForexRequestBranch}
-                  >
-                    Approve
-                  </Button>
-                </Table.HeaderCell>
+
               </Table.Row>
             </Table.Header>
 
             <Table.Body>
               {arrayDataForexDet.length > 0 &&
                 arrayDataForexDet.map((data, index) => {
-                  console.log(data[index]);
+                  // console.log(data[index]);
                   return (
                     <Table.Row key={index}>
                       <Table.Cell>{data.toClient}</Table.Cell>
                       <Table.Cell>
-                        {data.amountInUsd / 10e7} {data.tokenSymbol}
+                        {data.amountInUsd / 10e7}USD
                       </Table.Cell>
                       <Table.Cell>
-                        {data.amountInEur / 10e7} {data.tokenSymbol}
+                        {data.amountInEur / 10e7} EUR
                       </Table.Cell>
+                      <Table.Cell>{data.fromBankId}</Table.Cell>
                       <Table.Cell>{data.fromBranchId}</Table.Cell>
+                      <Table.Cell>{data.toBankId}</Table.Cell>
                       <Table.Cell>{data.toBranchId}</Table.Cell>
                       <Table.Cell>
-                        {data.isSentToBank ? "True" : "False"}
+                        {data.isSentToBank ? <Icon color='green' name='checkmark' size='large' /> : <Icon color='red' name='close' size='large' />}
                       </Table.Cell>
                       <Table.Cell>
                         {" "}
-                        <Button
-                          basic
-                          color="green"
-                          onClick={processForexRequestBranch}
-                        >
-                          Approve
-                        </Button>
-                        <Button basic color="red">
-                          Decline
-                        </Button>
+                        {data.isSentToBank ? <Button color="green">Approved</Button> :  <Button basic color="green" onClick={processForexRequestBranch}>Approve</Button>}
+
                       </Table.Cell>
                     </Table.Row>
                   );
@@ -1006,34 +1169,34 @@ function Branch() {
         </div>
       </div>
       <Divider />
+
       <Header as="h2" icon textAlign="center">
         <Icon name="wait" circular />
         <Header.Content>Pending Borrow Requests</Header.Content>
+
       </Header>
+      <Button secondary onClick={checkBorrowRequest}>View Requests</Button>
+      <Divider />
       <div>
         <Card.Group centered>
-          {arrayDataBorrowDet.length > 0 &&
-            arrayDataBorrowDet.map((data, index) => {
+          {arrayDataBorrowDispDet.length > 0 &&
+            arrayDataBorrowDispDet.map((data, index) => {
               return (
                 <Card>
                   <Card.Content>
                     <Icon name="handshake outline" circular />
                     <Card.Header>Borrow Request: {data.positionId} </Card.Header>
-                    <Card.Meta>Amount {data.amountBorrowed} USD</Card.Meta>
+                    <Card.Meta>Amount {data.amountBorrowed / 10e7} USD</Card.Meta>
+                    <Card.Meta>Status {data.isDone ? <Icon color='green' name='checkmark' size='large' /> : <Icon color='red' name='close' size='large' />}</Card.Meta>
                     <Card.Description>Interest Rate {10} %</Card.Description>
+
+
                   </Card.Content>
-                  <Card.Content extra>
-                    <div className="ui two buttons">
-                      <Button basic color="green">
-                        Approve
-                      </Button>
-                      <Button basic color="red">
-                        Decline
-                      </Button>
-                    </div>
-                  </Card.Content>
+
                 </Card>
               );
+
+
             })}
         </Card.Group>
         <div>
@@ -1046,35 +1209,29 @@ function Branch() {
               <Table.Row>
                 <Table.HeaderCell>Client ID</Table.HeaderCell>
                 <Table.HeaderCell>Amount Borrowed</Table.HeaderCell>
-
                 <Table.HeaderCell>Branch ID</Table.HeaderCell>
                 <Table.HeaderCell>Position ID</Table.HeaderCell>
-                 <Table.HeaderCell>Status</Table.HeaderCell>
-                 <Table.HeaderCell>Approved</Table.HeaderCell>
-                <Button primary onClick={checkBorrowRequest}>Details</Button>
+                <Table.HeaderCell>Status</Table.HeaderCell>
+                <Table.HeaderCell>Approved</Table.HeaderCell>
+
               </Table.Row>
             </Table.Header>
 
             <Table.Body>
-              {arrayDataBorrowDet.length > 0 &&
-                arrayDataBorrowDet.map((data, index) => {
-                  console.log(data[index]);
+              {arrayDataBorrowDispDet.length > 0 &&
+                arrayDataBorrowDispDet.map((data, index) => {
+                  // console.log(data[index]);
                   return (
                     <Table.Row key={index}>
                       <Table.Cell>{data.clientId}</Table.Cell>
-                      <Table.Cell>{data.amountBorrowed}</Table.Cell>
+                      <Table.Cell>{data.amountBorrowed / 10e7}</Table.Cell>
                       <Table.Cell>{data.branchId}</Table.Cell>
                       <Table.Cell>{data.positionId}</Table.Cell>
-                      <Table.Cell>{data.isBorrowed}</Table.Cell>
-                      <Table.Cell>{data.isDone}</Table.Cell>
+                      <Table.Cell>{data.isBorrowed ? 'True' : 'False'}</Table.Cell>
+                      <Table.Cell>{data.isDone ? <Icon color='green' name='checkmark' size='large' /> : <Icon color='red' name='close' size='large' />}</Table.Cell>
                       <Table.Cell>
                         {" "}
-                        <Button basic color="green">
-                          Approve
-                        </Button>
-                        <Button basic color="red">
-                          Decline
-                        </Button>
+                        {data.isDone ? <Button color="green" >Approved</Button> : <Button basic color="green" onClick={processLoan}>Approve</Button>}
                       </Table.Cell>
                     </Table.Row>
                   );
