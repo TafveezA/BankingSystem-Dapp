@@ -364,18 +364,18 @@ const HomepageLayout = () => (
                         <Grid.Column width={3}>
                             <Header inverted as='h4' content='Services' />
                             <List link inverted>
-                                <List.Item as='a'>Banana Pre-Order</List.Item>
-                                <List.Item as='a'>DNA FAQ</List.Item>
-                                <List.Item as='a'>How To Access</List.Item>
-                                <List.Item as='a'>Favorite X-Men</List.Item>
-                            </List>
+                    <List.Item as={Link} to='/banking'>Decentralized Forex</List.Item>
+                    <List.Item as='a'>Lending</List.Item>
+                    <List.Item as='a'>Transfer</List.Item>
+                    <List.Item as='a'> Token Swap</List.Item>
+                  </List>
                         </Grid.Column>
                         <Grid.Column width={7}>
                             <Header as='h4' inverted>
                                 Footer Header
                             </Header>
                             <p>
-                                Extra space for a call to action inside the footer that could help re-engage users.
+                            We Served Our Customer Since The start of the Blockchain Technology.
                             </p>
                         </Grid.Column>
                     </Grid.Row>
