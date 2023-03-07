@@ -36,6 +36,8 @@ function Banks() {
       setArrayData(temp_data)
     }
 
+    window.localStorage.clear()
+
   }, [arrayData]
   );
   async function addbranch() {
@@ -70,7 +72,6 @@ function Banks() {
         console.log("address", address);
 
         if (bankid == 0) {
-
           setTokenSymbol("EUR")
           let responseEcb = await callContractECB.methods.approve(contractAddressbnksys, amount * 100000000).send({ from: address, gas: 1000000 });
           let response = await callContract.methods
@@ -172,6 +173,7 @@ function Banks() {
 
         <Button type="submit" onClick={addbranch}>Submit</Button>
       </Form>
+      <Divider/>
       <div>
 
         <Table color='black' key={colors} inverted>
