@@ -71,6 +71,7 @@ function BankReserve() {
           let response = await callContract.methods
             .addBank(bankaddress, tokenSymbol, centralbankid, amount * 100000000)
             .send({ from: address, gas: 1000000 });
+
           let responseP1 = await callContract.methods
             .banks(0)
             .call();
@@ -174,12 +175,11 @@ function BankReserve() {
 
               (arrayData.length > 0) &&
               arrayData.map((data, index) => {
-                console.log(data[index]);
                 return (
                   <Table.Row key={index}>
                     <Table.Cell>{data.bank}</Table.Cell>
-                    <Table.Cell>{data.amount / 10e8} {data.tokenSymbol}</Table.Cell>
-                    <Table.Cell>{data.status ? 'True' : 'True'}</Table.Cell>
+                    <Table.Cell>{data.amount / 10e7} {data.tokenSymbol}</Table.Cell>
+                    <Table.Cell>{data.status ?  <Icon color='green' name='checkmark' size='large' /> : 'True'}</Table.Cell>
                   </Table.Row>
                 )
               }
