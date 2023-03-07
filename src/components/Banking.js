@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Button,
   Form,
@@ -12,6 +13,9 @@ import {
   Card,
   Breadcrumb,
   Table,
+  Grid,
+  List,
+  Container
 } from "semantic-ui-react";
 import { contractAddressFed, ABIFed } from "../constants";
 import { contractAddressEcb, ABIEcb } from "../constants";
@@ -34,8 +38,12 @@ function Banking() {
   const [arrayDataloan, setArrayDataLoan] = useState([]);
   const [arrayDataloanDet, setArrayDataLoanDet] = useState([]);
   const [isconnected, setIsConnected] = useState(false);
+  const [isExit, setIsExit] = useState(false);
 
   useEffect(() => {
+
+    // someForexDets()
+
     let temp_dataF = window.localStorage.getItem("DataF");
     if (temp_dataF) {
       temp_dataF = JSON.parse(temp_dataF);
@@ -59,7 +67,104 @@ function Banking() {
       temp_dataLoan_Det = JSON.parse(temp_dataLoan_Det);
       setArrayDataLoanDet(temp_dataLoan_Det);
     }
+
+
+
   }, [arrayDataF, arrayDataBr, arrayDataloan]);
+
+
+  async function someForexDets() {
+    try {
+      if (
+        typeof window !== "undefined" &&
+        typeof window.ethereum !== "undefined"
+      ) {
+        const accounts = await window.ethereum.enable();
+        console.log("accounts", accounts);
+        const provider = await new ethers.providers.Web3Provider(
+          window.ethereum
+        );
+        const signer = await provider.getSigner();
+        console.log("Signer", signer);
+        const address = await signer.getAddress();
+        console.log(address);
+      } else {
+        console.log("MemtaMask Not Installed Maen");
+      }
+      const web3eth = new Web3(Web3.givenProvider);
+
+      const callContract = new web3eth.eth.Contract(
+        ABIbnksys,
+        contractAddressbnksys
+      );
+      const callContractECB = new web3eth.eth.Contract(
+        ABIEcb,
+        contractAddressEcb
+      );
+      const callContractFED = new web3eth.eth.Contract(
+        ABIFed,
+        contractAddressFed
+      );
+      if (web3eth.givenProvider) {
+        console.log("Hello Provider Here", web3eth.givenProvider);
+        let address = web3eth.givenProvider.selectedAddress;
+        console.log("address", address);
+
+        let IDByAddress = await callContract.methods
+          .idOfAddress(address)
+          .call();
+
+        if (IDByAddress.bankId == 0) {
+          setTokenSymbol("EUR");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let numOfRequest = await callContract.methods
+            .numOfRequest(address)
+            .call();
+
+          let ReqDetailsClient1 = await callContract.methods
+            .requestDetails(address, numOfRequest - 1)
+            .call();
+
+          let tmp_data = arrayDataF;
+          tmp_data.push(ReqDetailsClient1);
+          console.log(tmp_data);
+          setArrayDataF(tmp_data);
+          window.localStorage.setItem("DataF", JSON.stringify(tmp_data));
+
+        } else {
+          setTokenSymbol("USD");
+
+          let IDByAddress = await callContract.methods
+            .idOfAddress(address)
+            .call();
+
+          let numOfRequest = await callContract.methods
+            .numOfRequest(address)
+            .call();
+
+          let ReqDetailsClient1 = await callContract.methods
+            .requestDetails(address, numOfRequest - 1)
+            .call();
+
+          let tmp_data = arrayDataF;
+          tmp_data.push(ReqDetailsClient1);
+          console.log(tmp_data);
+          setArrayDataF(tmp_data);
+          window.localStorage.setItem("DataF", JSON.stringify(tmp_data));
+
+        }
+      }
+    } catch (error) {
+      console.log(Error);
+    }
+
+
+
+  }
 
   async function forex() {
     try {
@@ -291,7 +396,7 @@ function Banking() {
           setArrayDataBr(tmp_data);
           window.localStorage.setItem("DataBr", JSON.stringify(tmp_data));
           console.log("arrayDataBr:", arrayDataBr);
-          console.log("arrayDataBr:", arrayDataBr[0].amount);
+          console.log("arrayDataBr:", arrayDataBr[0].isClear);
           console.log("arrayDataBr:", arrayDataBr[0].bank);
         } else {
           setTokenSymbol("USD");
@@ -382,13 +487,17 @@ function Banking() {
             .idOfAddress(address)
             .call();
 
-          let borrowDetails = await callContract.methods
-            .borrowDetails(address)
+          let branchAddress = await callContract.methods
+            .branches(IDByAddress.bankId, IDByAddress.branchId)
             .call();
-          console.log("borrowDetails", borrowDetails);
+
+
+          let borrowDetails = await callContract.methods
+            .borrowDetails(branchAddress.branch)
+            .call();
 
           let positionDetails = await callContract.methods
-            .positionDetails(borrowDetails.byClient, positionDetails.positionId)
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
             .call();
 
           let calculateNumOfDays = await callContract.methods
@@ -406,21 +515,31 @@ function Banking() {
 
           let response = await callContract.methods
             .clearLoan(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
+              positionDetails.bankId,
+              positionDetails.branchId,
               positionDetails.positionId,
               positionDetails.clientId
             )
             .send({ from: address, gas: 1000000 });
 
-          let tmp_data = arrayDataloan;
-          tmp_data.push(positionDetails);
-          console.log(tmp_data);
-          setArrayDataLoan(tmp_data);
-          window.localStorage.setItem("DataLoan", JSON.stringify(tmp_data));
-          console.log("arrayDataloan:", arrayDataloan);
-          console.log("arrayDataloan:", arrayDataloan[0].amount);
-          console.log("arrayDataloan:", arrayDataloan[0].bank);
+            let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+          let tmp_data_br = arrayDataBr;
+          tmp_data_br.push(positionDetails1);
+          console.log(tmp_data_br);
+          setArrayDataBr(tmp_data_br);
+          window.localStorage.setItem("DataBr", JSON.stringify(tmp_data_br));
+
+          // let tmp_data = arrayDataloan;
+          // tmp_data.push(positionDetails);
+          // console.log(tmp_data);
+          // setArrayDataLoan(tmp_data);
+          // window.localStorage.setItem("DataLoan", JSON.stringify(tmp_data));
+          // console.log("arrayDataloan:", arrayDataloan);
+          // console.log("arrayDataloan:", arrayDataloan[0].amount);
+          // console.log("arrayDataloan:", arrayDataloan[0].bank);
         } else {
           setTokenSymbol("USD");
 
@@ -428,19 +547,23 @@ function Banking() {
             .idOfAddress(address)
             .call();
 
+          let branchAddress = await callContract.methods
+            .branches(IDByAddress.bankId, IDByAddress.branchId)
+            .call();
+
           let borrowDetails = await callContract.methods
-            .borrowDetails(address)
+            .borrowDetails(branchAddress.branch)
             .call();
           console.log("borrowDetails", borrowDetails);
 
           let positionDetails = await callContract.methods
-            .positionDetails(borrowDetails.byClient, positionDetails.positionId)
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
             .call();
 
           let calculateNumOfDays = await callContract.methods
             .calculateNumOfDays(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
+              positionDetails.bankId,
+              positionDetails.branchId,
               positionDetails.positionId
             )
             .call();
@@ -452,25 +575,39 @@ function Banking() {
 
           let response = await callContract.methods
             .clearLoan(
-              IDByAddress.bankId,
-              IDByAddress.branchId,
+              positionDetails.bankId,
+              positionDetails.branchId,
               positionDetails.positionId,
               positionDetails.clientId
             )
             .send({ from: address, gas: 1000000 });
-          let tmp_data = arrayDataloan;
-          tmp_data.push(positionDetails);
-          console.log(tmp_data);
-          setArrayDataLoan(tmp_data);
-          window.localStorage.setItem("DataLoan", JSON.stringify(tmp_data));
-          console.log("arrayDataloan:", arrayDataloan);
-          console.log("arrayDataloan:", arrayDataloan[0].amount);
-          console.log("arrayDataloan:", arrayDataloan[0].bank);
+
+
+            let positionDetails1 = await callContract.methods
+            .positionDetails(borrowDetails.byClient, borrowDetails.positionId)
+            .call();
+
+
+          let tmp_data_br = arrayDataBr;
+          tmp_data_br.push(positionDetails1);
+          console.log(tmp_data_br);
+          setArrayDataBr(tmp_data_br);
+          window.localStorage.setItem("DataBr", JSON.stringify(tmp_data_br));
+
+          // let tmp_data = arrayDataloan;
+          // tmp_data.push(positionDetails);
+          // console.log(tmp_data);
+          // setArrayDataLoan(tmp_data);
+          // window.localStorage.setItem("DataLoan", JSON.stringify(tmp_data));
+          // console.log("arrayDataloan:", arrayDataloan);
+          // console.log("arrayDataloan:", arrayDataloan[0].amount);
+          // console.log("arrayDataloan:", arrayDataloan[0].bank);
         }
       }
     } catch (error) {
       console.log(Error);
     }
+    setIsExit(true)
   }
 
   async function giveDetails() {
@@ -613,13 +750,13 @@ function Banking() {
               ui={false}
             />
             <Card.Content>
-              <Card.Header>Tom</Card.Header>
+              <Card.Header>Afzal</Card.Header>
 
               <Card.Meta>
-                <span className="date">client ID: {2}</span>
+                <span className="date">client ID: {0}</span>
               </Card.Meta>
               <Card.Description>
-                Tom is a client of Bank of New York.
+                Afzal is a client of Bank of New York.
               </Card.Description>
             </Card.Content>
             <Card.Content extra>
@@ -695,6 +832,7 @@ function Banking() {
                 console.log(data[index]);
                 return (
                   <Table.Row key={index}>
+
                     <Table.Cell>{data.toClient}</Table.Cell>
                     <Table.Cell>{data.amountInUsd / 10e7} USD</Table.Cell>
                     <Table.Cell>{data.amountInEur / 10e7} EUR</Table.Cell>
@@ -703,9 +841,12 @@ function Banking() {
                       {data.isDepositedToBranch ? "True" : "False"}
                     </Table.Cell>
                     <Table.Cell>{data.isDone ? "True" : "False"}</Table.Cell>
+
                   </Table.Row>
                 );
               })}
+
+            {/* false displayed for data.isDOne as initially forexrequest put a false in the local store now when i rretrie it gives the same old result  */}
 
             {/* <Table.Row>
 <Table.Cell>"0x157840be5604f37284b00Ec5801B609710764566"</Table.Cell>
@@ -755,27 +896,32 @@ function Banking() {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Borrowed Amount</Table.HeaderCell>
+              <Table.HeaderCell>Bank ID</Table.HeaderCell>
+              <Table.HeaderCell>Client ID</Table.HeaderCell>
               <Table.HeaderCell>Position ID</Table.HeaderCell>
               {/* <Table.HeaderCell>Interest Occured</Table.HeaderCell> */}
               <Table.HeaderCell>Status</Table.HeaderCell>
+              <Table.HeaderCell>Clear Loan</Table.HeaderCell>
 
-              <Button basic color="green" onClick={clearLoan}>
-                Approve
-              </Button>
+
             </Table.Row>
           </Table.Header>
 
           <Table.Body>
-            {arrayDataloan.length > 0 &&
-              arrayDataloan.map((data, index) => {
+            {arrayDataBr.length > 0 &&
+              arrayDataBr.map((data, index) => {
                 console.log(data[index]);
                 return (
                   <Table.Row key={index}>
                     <Table.Cell>{data.amountBorrowed / 10e7}</Table.Cell>
+                    <Table.Cell>{data.bankId}</Table.Cell>
+                    <Table.Cell>{data.clientId}</Table.Cell>
                     <Table.Cell>{data.positionId}</Table.Cell>
                     <Table.Cell>
                       {data.isBorrowed ? "True" : "False"}
                     </Table.Cell>
+                    {data.isClear ? <Icon color='green' name='checkmark' size='large' /> : <Button basic color="green" onClick={clearLoan}>Exit</Button>}
+
                   </Table.Row>
                 );
               })}
@@ -787,6 +933,45 @@ function Banking() {
 </Table.Row> */}
           </Table.Body>
         </Table>
+      </div>
+
+      <div>
+        <Divider />
+
+        <Segment inverted vertical style={{ padding: '5em 0em' }}>
+          <Container>
+            <Grid divided inverted stackable>
+              <Grid.Row>
+                <Grid.Column width={3}>
+                  <Header inverted as='h4' content='About' />
+                  <List link inverted>
+                    <List.Item as='a'>Sitemap</List.Item>
+                    <List.Item as='a'>Contact Us</List.Item>
+                    <List.Item as='a'>Crypto meets</List.Item>
+                    <List.Item as='a'>Future Plans</List.Item>
+                  </List>
+                </Grid.Column>
+                <Grid.Column width={3}>
+                  <Header inverted as='h4' content='Services' />
+                  <List link inverted>
+                    <List.Item as={Link} to='/banking'>Decentralized Forex</List.Item>
+                    <List.Item as='a'>Lending</List.Item>
+                    <List.Item as='a'>Transfer</List.Item>
+                    <List.Item as='a'> Token Swap</List.Item>
+                  </List>
+                </Grid.Column>
+                <Grid.Column width={7}>
+                  <Header as='h4' inverted>
+                    Trust and Security
+                  </Header>
+                  <p>
+                    We Served Our Customer Since The start of the Blockchain Technology.
+                  </p>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
+          </Container>
+        </Segment>
       </div>
     </div>
   );
