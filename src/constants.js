@@ -1,5 +1,5 @@
 export const contractAddressbnksys =
-  "0xdce384b5E183B522484394d138917560EdFF3DA0";
+  "0x350a7D6a3d13F16C4B9393e72268aF00e3fD65c6";
 export const ABIbnksys =[
 	{
 		"inputs": [
@@ -1174,7 +1174,7 @@ export const ABIbnksys =[
 		"type": "function"
 	}
 ]
-export const contractAddressEcb = "0x6Af176F4F44c62C6674490328d213fab5A057200";
+export const contractAddressEcb = "0xdCaf05f2Ff6913E876C2D06EEb5098ceD4AdA393";
 
 export const ABIEcb = [
 	{
@@ -1458,7 +1458,7 @@ export const ABIEcb = [
 	}
 ]
 
-export const contractAddressFed = "0x781aa138b5BA6E07980D2F229A131aC491C41953";
+export const contractAddressFed = "0xee48A8762AF6406cB7792D5ef699C9ef555Eef8D";
 
 export const ABIFed = [
 	{
